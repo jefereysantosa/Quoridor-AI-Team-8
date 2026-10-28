@@ -1,0 +1,5 @@
+# Library utama untuk GUI dan rendering permainan
+pygame-ce>=2.5.0
+
+# Framework pengujian untuk menjalankan test suite di folder tests/
+pytest>=8.0.0
