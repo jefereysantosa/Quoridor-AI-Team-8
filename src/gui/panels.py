@@ -1,0 +1,158 @@
+"""
+Modul komponen panel GUI (Gambar 4 proposal).
+
+Menyediakan tombol, grup pilihan, panel statistik AI, dan layar bantuan.
+Panel Explainable Hint dan tombol Dynamic Playstyle ada di innovations.py.
+"""
+
+from __future__ import annotations
+
+from typing import Dict, List, Optional, Sequence, Tuple
+
+import pygame
+
+COLOR_PANEL = (24, 26, 34)
+COLOR_BORDER = (90, 95, 110)
+COLOR_TEXT = (225, 228, 235)
+COLOR_MUTED = (150, 155, 170)
+COLOR_ACCENT = (255, 214, 102)
+COLOR_BUTTON = (45, 48, 60)
+COLOR_BUTTON_ACTIVE = (70, 120, 200)
+COLOR_BUTTON_DISABLED = (32, 34, 42)
+
+
+def draw_panel(screen, rect: pygame.Rect) -> None:
+    pygame.draw.rect(screen, COLOR_PANEL, rect, border_radius=8)
+    pygame.draw.rect(screen, COLOR_BORDER, rect, width=1, border_radius=8)
+
+
+def wrap_text(text: str, font, max_width: int) -> List[str]:
+    """Memecah teks per kata agar muat pada lebar panel."""
+    lines: List[str] = []
+    current = ""
+    for word in text.split():
+        candidate = f"{current} {word}".strip()
+        if font.size(candidate)[0] <= max_width or not current:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+class Button:
+    """Tombol sederhana dengan satu aksi."""
+
+    def __init__(self, rect: pygame.Rect, label: str, key: str):
+        self.rect = rect
+        self.label = label
+        self.key = key
+
+    def hit(self, pos: Tuple[int, int]) -> bool:
+        return self.rect.collidepoint(pos)
+
+    def draw(self, screen, font, enabled: bool = True, active: bool = False) -> None:
+        fill = COLOR_BUTTON_ACTIVE if active else COLOR_BUTTON if enabled else COLOR_BUTTON_DISABLED
+        pygame.draw.rect(screen, fill, self.rect, border_radius=6)
+        pygame.draw.rect(screen, COLOR_BORDER, self.rect, width=1, border_radius=6)
+        color = COLOR_TEXT if enabled else COLOR_MUTED
+        label = font.render(self.label, True, color)
+        screen.blit(label, label.get_rect(center=self.rect.center))
+
+
+class ToggleGroup:
+    """Deretan tombol yang hanya satu pilihannya aktif, misalnya Kesulitan."""
+
+    def __init__(self, rect: pygame.Rect, options: Sequence[Tuple[str, object]]):
+        width = rect.width // len(options)
+        self.buttons = [
+            (value, Button(pygame.Rect(rect.left + i * width, rect.top, width - 2, rect.height), label, str(value)))
+            for i, (label, value) in enumerate(options)
+        ]
+
+    def hit(self, pos: Tuple[int, int]) -> Optional[object]:
+        for value, button in self.buttons:
+            if button.hit(pos):
+                return value
+        return None
+
+    def draw(self, screen, font, active_value) -> None:
+        for value, button in self.buttons:
+            button.draw(screen, font, active=value == active_value)
+
+
+def _format_score(score: Optional[float]) -> str:
+    if score is None:
+        return "-"
+    if score == float("inf"):
+        return "MENANG"
+    if score == float("-inf"):
+        return "KALAH"
+    return f"{score:+.2f}"
+
+
+class StatsPanel:
+    """Panel Statistik AI: angka dari pencarian terakhir."""
+
+    def __init__(self, rect: pygame.Rect, title_font, font):
+        self.rect = rect
+        self.title_font = title_font
+        self.font = font
+
+    def draw(self, screen, stats: Dict, thinking: bool) -> None:
+        draw_panel(screen, self.rect)
+        x, y = self.rect.left + 14, self.rect.top + 10
+        title = "PANEL STATISTIK AI" + ("  (AI berpikir...)" if thinking else "")
+        screen.blit(self.title_font.render(title, True, COLOR_ACCENT), (x, y))
+        y += 30
+
+        rows = [
+            ("Algoritma", "Minimax + Alpha-Beta"),
+            ("Kedalaman", f"{stats['depth']} ply" if "depth" in stats else "-"),
+            ("Node eval", f"{stats['nodes']:,}".replace(",", ".") if "nodes" in stats else "-"),
+            ("Cutoff prune", f"{stats['cutoffs']:,}".replace(",", ".") if "cutoffs" in stats else "-"),
+            ("Waktu", f"{stats['ms']:,.0f} ms".replace(",", ".") if "ms" in stats else "-"),
+            ("Skor", _format_score(stats.get("score"))),
+        ]
+        for label, value in rows:
+            screen.blit(self.font.render(f"{label:<13}: {value}", True, COLOR_TEXT), (x, y))
+            y += 24
+
+
+HELP_LINES = [
+    "CARA BERMAIN",
+    "",
+    "Tujuan: bawa pion Anda ke baris berwarna di sisi seberang.",
+    "Klik sel bergaris hijau untuk menggerakkan pion.",
+    "Klik celah antar sel untuk memasang dinding.",
+    "Dinding merah berarti ditolak, alasannya tampil di panel bawah.",
+    "",
+    "GHOST STEP",
+    "Setelah memilih langkah, prediksi balasan AI tampil transparan.",
+    "Klik langkah yang sama, tekan Enter, atau Konfirmasi untuk menjalankan.",
+    "",
+    "TOMBOL",
+    "Enter konfirmasi   Esc batal   H hint   U undo   R restart",
+    "G nyala/matikan Ghost Step   F1 tampilkan bantuan ini",
+    "",
+    "Tekan tombol apa saja untuk menutup.",
+]
+
+
+def draw_help(screen, title_font, font) -> None:
+    """Layar bantuan di atas seluruh jendela."""
+    shade = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    shade.fill((0, 0, 0, 190))
+    screen.blit(shade, (0, 0))
+    box = pygame.Rect(0, 0, 780, 470)
+    box.center = screen.get_rect().center
+    draw_panel(screen, box)
+    y = box.top + 20
+    for line in HELP_LINES:
+        heading = line.isupper()
+        use_font = title_font if heading else font
+        color = COLOR_ACCENT if heading else COLOR_TEXT
+        screen.blit(use_font.render(line, True, color), (box.left + 28, y))
+        y += 26
