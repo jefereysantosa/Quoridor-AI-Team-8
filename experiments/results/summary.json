@@ -29,7 +29,7 @@
       "target_met": true,
       "win_rate_ai_first": 100.0,
       "win_rate_ai_second": 100.0,
-      "avg_plies": 30.2
+      "avg_plies": 30.0
     },
     "greedy": {
       "games": 50,
@@ -44,7 +44,7 @@
       "target_met": true,
       "win_rate_ai_first": 100.0,
       "win_rate_ai_second": 100.0,
-      "avg_plies": 20.7
+      "avg_plies": 19.9
     },
     "minimax": {
       "games": 50,
@@ -57,28 +57,28 @@
         60.0
       ],
       "target_met": true,
-      "win_rate_ai_first": 48.0,
-      "win_rate_ai_second": 52.0,
-      "avg_plies": 67.8
+      "win_rate_ai_first": 72.0,
+      "win_rate_ai_second": 28.0,
+      "avg_plies": 65.3
     }
   },
   "wall_effectiveness": {
-    "walls_placed": 783,
-    "mean": 1.966,
-    "positive_share_percent": 94.5,
+    "walls_placed": 757,
+    "mean": 1.855,
+    "positive_share_percent": 93.7,
     "negative_count": 0
   },
   "pruning": {
     "samples": 20,
     "depth": 3,
-    "mean_efficiency_percent": 73.34,
+    "mean_efficiency_percent": 66.85,
     "same_move_share_percent": 100.0,
-    "mean_nodes_alphabeta": 1305.9,
-    "mean_nodes_minimax": 34136.8
+    "mean_nodes_alphabeta": 1071.9,
+    "mean_nodes_minimax": 15497.5
   },
   "search_cost": {
-    "mean_nodes_per_ai_move": 223.3,
-    "mean_ms_per_ai_move": 525.7
+    "mean_nodes_per_ai_move": 229.5,
+    "mean_ms_per_ai_move": 656.0
   },
   "correctness": {
     "illegal_moves_total": 0,
