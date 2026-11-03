@@ -11,6 +11,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import pygame
 
+from .controller import LEVEL_TIME_LIMITS
+
 COLOR_PANEL = (24, 26, 34)
 COLOR_BORDER = (90, 95, 110)
 COLOR_TEXT = (225, 228, 235)
@@ -128,38 +130,71 @@ class StatsPanel:
             y += 24
 
 
-HELP_LINES = [
-    "CARA BERMAIN",
-    "",
-    "Tujuan: bawa pion Anda ke baris berwarna di sisi seberang.",
-    "Klik sel bergaris hijau untuk menggerakkan pion.",
-    "Klik celah antar sel untuk memasang dinding.",
-    "Dinding merah berarti ditolak, alasannya tampil di panel bawah.",
-    "",
-    "GHOST STEP",
-    "Setelah memilih langkah, prediksi balasan AI tampil transparan.",
-    "Klik langkah yang sama, tekan Enter, atau Konfirmasi untuk menjalankan.",
-    "",
-    "TOMBOL",
-    "Enter konfirmasi   Esc batal   H hint   U undo   R restart",
-    "G nyala/matikan Ghost Step   F1 tampilkan bantuan ini",
-    "",
-    "Tekan tombol apa saja untuk menutup.",
+HELP_BOX_SIZE = (780, 600)
+HELP_LINE_HEIGHT = 26
+
+HELP_PAGES = [
+    [
+        "CARA BERMAIN",
+        "Tujuan: bawa pion Anda ke baris berwarna di sisi seberang, kolom mana saja.",
+        "Tiap giliran pilih satu: gerakkan pion atau pasang dinding (masing-masing 10).",
+        "Klik sel bergaris hijau untuk menggerakkan pion.",
+        "Klik celah antar sel untuk memasang dinding.",
+        "Dinding merah berarti ditolak, alasannya tampil di kotak pesan.",
+        "",
+        "GHOST STEP",
+        "Setelah memilih langkah, prediksi balasan AI tampil transparan.",
+        "Klik langkah yang sama, tekan Enter, atau Konfirmasi untuk menjalankan.",
+        "Prediksi hanya melihat satu langkah, balasan AI sebenarnya bisa berbeda.",
+        "",
+        "TOMBOL",
+        "Enter konfirmasi   Esc batal   H hint   U undo   R restart",
+        "G nyala/matikan Ghost Step   F1 tampilkan bantuan ini",
+        "Undo pada vs AI membatalkan langkah AI dan langkah Anda sekaligus.",
+    ],
+    [
+        "PLAYSTYLE (GAYA BERMAIN AI LAWAN)",
+        "Aggressive: mengutamakan jalur terpendeknya sendiri.",
+        "Defensive: lebih menghemat dinding dan membatasi gerak Anda.",
+        "Balanced: seimbang, ini pilihan bawaan.",
+        "Perbedaannya halus dan sering baru terlihat setelah dinding mulai dipasang.",
+        "",
+        "KESULITAN 1-5",
+        "Makin tinggi, makin jauh AI menghitung ke depan.",
+        f"Level 1 dan 2 cepat. Level 3, 4, dan 5 berpikir maksimal {LEVEL_TIME_LIMITS[3]:g}, "
+        f"{LEVEL_TIME_LIMITS[4]:g}, dan {LEVEL_TIME_LIMITS[5]:g} detik.",
+        "Papan terkunci selama AI berpikir.",
+        "",
+        "PANEL STATISTIK AI",
+        "Tidak perlu untuk bermain, panel ini menunjukkan cara kerja AI.",
+        "Kedalaman: langkah ke depan yang dihitung. Node eval: posisi yang dinilai.",
+        "Cutoff prune: berapa kali Alpha-Beta memotong pencarian.",
+        "Waktu: lama AI berpikir. Skor: nilai posisi, positif menguntungkan AI.",
+        "",
+        "KOTAK PESAN",
+        "Berisi petunjuk, langkah pilihan, prediksi AI, alasan penolakan, dan pemenang.",
+        "Langkah terakhir AI tidak ditulis di sini, lihat langsung di papan.",
+    ],
 ]
 
 
-def draw_help(screen, title_font, font) -> None:
+def draw_help(screen, title_font, font, page: int = 0) -> None:
     """Layar bantuan di atas seluruh jendela."""
     shade = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
     shade.fill((0, 0, 0, 190))
     screen.blit(shade, (0, 0))
-    box = pygame.Rect(0, 0, 780, 470)
+    box = pygame.Rect(0, 0, HELP_BOX_SIZE[0], HELP_BOX_SIZE[1])
     box.center = screen.get_rect().center
     draw_panel(screen, box)
     y = box.top + 20
-    for line in HELP_LINES:
+    for line in HELP_PAGES[page]:
         heading = line.isupper()
         use_font = title_font if heading else font
         color = COLOR_ACCENT if heading else COLOR_TEXT
         screen.blit(use_font.render(line, True, color), (box.left + 28, y))
-        y += 26
+        y += HELP_LINE_HEIGHT
+
+    last = page == len(HELP_PAGES) - 1
+    action = "menutup" if last else "lanjut, Esc untuk menutup"
+    footer = f"Halaman {page + 1}/{len(HELP_PAGES)}. Tekan tombol apa saja untuk {action}."
+    screen.blit(font.render(footer, True, COLOR_MUTED), (box.left + 28, box.bottom - 36))

@@ -5,11 +5,15 @@ import time
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
+import pygame
+
 from src.gui.board_view import BoardView, CELL_SIZE, ORIGIN
 from src.gui.controller import (
     AI_IDX, HUMAN_IDX, LEVEL_TIME_LIMITS, MODE_HUMAN, GameController, _search, wall_rejection_reason,
 )
+from src.gui.panels import HELP_BOX_SIZE, HELP_LINE_HEIGHT, HELP_PAGES
 from src.game.state import State
+from src.main import App
 
 OX, OY = ORIGIN
 
@@ -161,6 +165,39 @@ def test_langkah_menang_tidak_menunggu_batas_waktu(monkeypatch):
     s.pawns[0], s.pawns[1] = (7, 2), (1, 6)
     action, stats = _search(s, 5, "balanced", threading.Event())
     assert action == ("move", (8, 2)) and stats["depth"] == 1
+
+
+def test_help_berpindah_halaman_lalu_tertutup():
+    app = App()
+    tekan = lambda key: app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
+    tekan(pygame.K_F1)
+    assert app.show_help and app.help_page == 0
+    app.draw()
+    tekan(pygame.K_SPACE)
+    assert app.show_help and app.help_page == 1
+    app.draw()
+    tekan(pygame.K_SPACE)
+    assert not app.show_help
+
+
+def test_help_esc_langsung_menutup_dan_buka_lagi_dari_awal():
+    app = App()
+    tekan = lambda key: app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
+    tekan(pygame.K_F1)
+    tekan(pygame.K_ESCAPE)
+    assert not app.show_help
+    tekan(pygame.K_F1)
+    assert app.show_help and app.help_page == 0
+
+
+def test_teks_help_muat_di_dalam_kotak():
+    app = App()
+    lebar, tinggi = HELP_BOX_SIZE
+    for halaman in HELP_PAGES:
+        assert 20 + len(halaman) * HELP_LINE_HEIGHT <= tinggi - 36
+        for baris in halaman:
+            font = app.font_title if baris.isupper() else app.font
+            assert font.size(baris)[0] <= lebar - 56
 
 
 def test_hint_tersedia_tanpa_mengubah_state():

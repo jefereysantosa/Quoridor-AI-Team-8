@@ -14,7 +14,7 @@ from src.gui.board_view import BoardView, CELL_SIZE, ORIGIN, PLAYER_COLORS
 from src.gui.controller import AI_IDX, HUMAN_IDX, MODE_AI, MODE_HUMAN, GameController
 from src.gui.innovations import GhostOverlay, HintPanel, PlaystyleButtons
 from src.gui.panels import (
-    COLOR_ACCENT, COLOR_MUTED, COLOR_TEXT,
+    COLOR_ACCENT, COLOR_MUTED, COLOR_TEXT, HELP_PAGES,
     Button, StatsPanel, ToggleGroup, draw_help, draw_panel, wrap_text,
 )
 
@@ -36,6 +36,7 @@ class App:
         self.clock = pygame.time.Clock()
         self.running = True
         self.show_help = False
+        self.help_page = 0
 
         self.font = pygame.font.SysFont("consolas", 16)
         self.font_small = pygame.font.SysFont("consolas", 14, bold=True)
@@ -79,7 +80,7 @@ class App:
             self.running = False
         elif self.show_help:
             if event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN):
-                self.show_help = False
+                self._advance_help(event)
         elif event.type == pygame.MOUSEMOTION:
             self.hover = self.board.hit_test(event.pos)
         elif event.type == pygame.KEYDOWN:
@@ -99,7 +100,7 @@ class App:
             pygame.K_g: ctrl.toggle_ghost,
         }
         if key == pygame.K_F1:
-            self.show_help = True
+            self._open_help()
         elif key in actions:
             actions[key]()
 
@@ -145,6 +146,14 @@ class App:
 
     def _open_help(self) -> None:
         self.show_help = True
+        self.help_page = 0
+
+    def _advance_help(self, event) -> None:
+        """Lanjut ke halaman berikutnya; Esc atau halaman terakhir menutup bantuan."""
+        escape = event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
+        self.help_page += 1
+        if escape or self.help_page >= len(HELP_PAGES):
+            self.show_help = False
 
     # ------------------------------------------------------------------
     # Gambar
@@ -157,7 +166,7 @@ class App:
         self._draw_right_column()
         self._draw_controls()
         if self.show_help:
-            draw_help(self.screen, self.font_title, self.font)
+            draw_help(self.screen, self.font_title, self.font, self.help_page)
 
     def _draw_menu(self) -> None:
         ctrl = self.ctrl
