@@ -17,14 +17,15 @@ WALL_THICKNESS = 8
 TILE_INSET = 4
 WALL_ZONE = 0.22  # bagian sel dari tepinya yang dianggap area slot dinding
 
-COLOR_BOARD = (18, 19, 24)
-COLOR_TILE = (42, 44, 54)
-COLOR_GOAL_P0 = (38, 56, 88)
-COLOR_GOAL_P1 = (84, 44, 48)
-COLOR_WALL = (226, 228, 234)
-COLOR_LEGAL = (96, 200, 130)
-COLOR_INVALID = (226, 72, 72)
-PLAYER_COLORS = ((86, 138, 240), (226, 84, 84))
+COLOR_BOARD = (38, 31, 25)
+COLOR_TILE = (84, 68, 52)
+COLOR_GOAL_P0 = (66, 80, 88)
+COLOR_GOAL_P1 = (108, 66, 52)
+COLOR_WALL = (226, 205, 165)
+COLOR_LEGAL = (150, 180, 100)
+COLOR_INVALID = (236, 122, 100)
+COLOR_PAWN_RING = (30, 25, 20)
+PLAYER_COLORS = ((134, 168, 196), (214, 110, 82))
 
 
 class BoardView:
@@ -131,4 +132,4 @@ class BoardView:
         )
         radius = int(self.cell * 0.32)
         pygame.draw.circle(screen, PLAYER_COLORS[player_idx], center, radius)
-        pygame.draw.circle(screen, (240, 242, 248), center, radius, 2)
+        pygame.draw.circle(screen, COLOR_PAWN_RING, center, radius, 2)

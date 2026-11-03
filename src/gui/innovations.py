@@ -18,7 +18,13 @@ import pygame
 from ..ai.explain import format_hint_text
 from ..ai.ghost import GhostPrediction
 from ..ai.playstyle import list_playstyles
-from .panels import wrap_text
+from .board_view import PLAYER_COLORS
+from .panels import (
+    COLOR_ACCENT, COLOR_BORDER, COLOR_BUTTON, COLOR_BUTTON_ACTIVE, COLOR_BUTTON_ACTIVE_TEXT,
+    COLOR_PANEL, COLOR_TEXT, wrap_text,
+)
+
+COLOR_GHOST = PLAYER_COLORS[1]
 
 
 class GhostOverlay:
@@ -36,7 +42,7 @@ class GhostOverlay:
             self.ox + c * self.cell, self.oy + r * self.cell, self.cell, self.cell
         )
 
-    def draw_pawn_ghost(self, screen, pos: Tuple[int, int], color=(220, 70, 70)):
+    def draw_pawn_ghost(self, screen, pos: Tuple[int, int], color=COLOR_GHOST):
         rect = self._cell_rect(*pos)
         surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
         center = (rect.width // 2, rect.height // 2)
@@ -51,7 +57,7 @@ class GhostOverlay:
             pygame.draw.line(surf, (*color, 230), p0, p1, 2)
         screen.blit(surf, rect.topleft)
 
-    def draw_wall_ghost(self, screen, r: int, c: int, orient: str, color=(220, 70, 70)):
+    def draw_wall_ghost(self, screen, r: int, c: int, orient: str, color=COLOR_GHOST):
         if orient == "H":
             rect = pygame.Rect(
                 self.ox + c * self.cell, self.oy + (r + 1) * self.cell - 4,
@@ -107,11 +113,11 @@ class HintPanel:
         self.lines = []
 
     def draw(self, screen):
-        pygame.draw.rect(screen, (24, 26, 34), self.rect, border_radius=8)
-        pygame.draw.rect(screen, (90, 95, 110), self.rect, width=1, border_radius=8)
+        pygame.draw.rect(screen, COLOR_PANEL, self.rect, border_radius=8)
+        pygame.draw.rect(screen, COLOR_BORDER, self.rect, width=1, border_radius=8)
         y = self.rect.top + 10
         for i, line in enumerate(self.lines):
-            color = (255, 214, 102) if i == 0 else (225, 228, 235)
+            color = COLOR_ACCENT if i == 0 else COLOR_TEXT
             surf = self.font.render(line, True, color)
             screen.blit(surf, (self.rect.left + 12, y))
             y += surf.get_height() + 4
@@ -144,8 +150,8 @@ class PlaystyleButtons:
     def draw(self, screen, active_key: str):
         for key, name, rect in self.buttons:
             active = key == active_key
-            fill = (70, 120, 200) if active else (45, 48, 60)
+            fill = COLOR_BUTTON_ACTIVE if active else COLOR_BUTTON
             pygame.draw.rect(screen, fill, rect, border_radius=6)
-            pygame.draw.rect(screen, (120, 126, 145), rect, width=1, border_radius=6)
-            label = self.font.render(name, True, (240, 240, 245))
+            pygame.draw.rect(screen, COLOR_BORDER, rect, width=1, border_radius=6)
+            label = self.font.render(name, True, COLOR_BUTTON_ACTIVE_TEXT if active else COLOR_TEXT)
             screen.blit(label, label.get_rect(center=rect.center))

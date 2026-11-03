@@ -10,19 +10,19 @@ from __future__ import annotations
 import pygame
 
 from src.ai.explain import describe_action
-from src.gui.board_view import BoardView, CELL_SIZE, ORIGIN, PLAYER_COLORS
+from src.gui.board_view import BoardView, CELL_SIZE, COLOR_INVALID, COLOR_LEGAL, ORIGIN, PLAYER_COLORS
 from src.gui.controller import AI_IDX, HUMAN_IDX, MODE_AI, MODE_HUMAN, GameController
 from src.gui.innovations import GhostOverlay, HintPanel, PlaystyleButtons
 from src.gui.panels import (
-    COLOR_ACCENT, COLOR_MUTED, COLOR_TEXT, HELP_PAGES,
+    COLOR_ACCENT, COLOR_MUTED, COLOR_ON_SHADE, COLOR_SHADE, COLOR_TEXT, HELP_PAGES,
     Button, StatsPanel, ToggleGroup, draw_help, draw_panel, wrap_text,
 )
 
 WINDOW_SIZE = (1180, 780)
-BACKGROUND = (14, 15, 19)
+BACKGROUND = (38, 36, 33)
 RIGHT_X = 672
 RIGHT_W = 476
-HINT_GHOST_COLOR = (96, 200, 130)
+HINT_GHOST_COLOR = COLOR_LEGAL
 FPS = 60
 
 
@@ -39,6 +39,7 @@ class App:
         self.help_page = 0
 
         self.font = pygame.font.SysFont("consolas", 16)
+        self.font_message = pygame.font.SysFont("consolas", 16, bold=True)
         self.font_small = pygame.font.SysFont("consolas", 14, bold=True)
         self.font_title = pygame.font.SysFont("consolas", 17, bold=True)
         self.font_big = pygame.font.SysFont("consolas", 40, bold=True)
@@ -218,11 +219,11 @@ class App:
     def _draw_game_over(self) -> None:
         rect = self.board.rect
         shade = pygame.Surface(rect.size, pygame.SRCALPHA)
-        shade.fill((0, 0, 0, 150))
+        shade.fill((*COLOR_SHADE, 170))
         self.screen.blit(shade, rect.topleft)
-        title = self.font_big.render(f"{self.ctrl.player_name(self.ctrl.winner)} menang!", True, COLOR_ACCENT)
+        title = self.font_big.render(f"{self.ctrl.player_name(self.ctrl.winner)} menang!", True, COLOR_ON_SHADE)
         self.screen.blit(title, title.get_rect(center=(rect.centerx, rect.centery - 16)))
-        sub = self.font.render("Tekan R untuk bermain lagi, atau U untuk undo", True, COLOR_TEXT)
+        sub = self.font.render("Tekan R untuk bermain lagi, atau U untuk undo", True, COLOR_ON_SHADE)
         self.screen.blit(sub, sub.get_rect(center=(rect.centerx, rect.centery + 26)))
 
     def _draw_right_column(self) -> None:
@@ -252,7 +253,7 @@ class App:
         draw_panel(self.screen, rect)
 
         if ctrl.notice:
-            text, color = ctrl.notice, (240, 130, 130)
+            text, color = ctrl.notice, COLOR_INVALID
         elif ctrl.pending:
             text = f"Pilihan: {describe_action(ctrl.pending)}."
             if ctrl.ghost_loading:
@@ -263,13 +264,13 @@ class App:
         elif ctrl.winner is not None:
             text, color = f"{ctrl.player_name(ctrl.winner)} mencapai garis tujuan.", COLOR_ACCENT
         elif ctrl.ai_thinking:
-            text, color = "AI sedang mencari langkah terbaik...", COLOR_MUTED
+            text, color = "AI sedang mencari langkah terbaik...", COLOR_ACCENT
         else:
-            text, color = "Pilih sel hijau untuk bergerak atau celah untuk memasang dinding.", COLOR_MUTED
+            text, color = "Pilih sel hijau untuk bergerak atau celah untuk memasang dinding.", COLOR_TEXT
 
         y = rect.top + 8
-        for line in wrap_text(text, self.font, rect.width - 28)[:3]:
-            self.screen.blit(self.font.render(line, True, color), (rect.left + 14, y))
+        for line in wrap_text(text, self.font_message, rect.width - 28)[:3]:
+            self.screen.blit(self.font_message.render(line, True, color), (rect.left + 14, y))
             y += 19
 
         if ctrl.pending:

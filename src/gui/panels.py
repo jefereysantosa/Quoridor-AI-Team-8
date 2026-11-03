@@ -13,14 +13,17 @@ import pygame
 
 from .controller import LEVEL_TIME_LIMITS
 
-COLOR_PANEL = (24, 26, 34)
-COLOR_BORDER = (90, 95, 110)
-COLOR_TEXT = (225, 228, 235)
-COLOR_MUTED = (150, 155, 170)
-COLOR_ACCENT = (255, 214, 102)
-COLOR_BUTTON = (45, 48, 60)
-COLOR_BUTTON_ACTIVE = (70, 120, 200)
-COLOR_BUTTON_DISABLED = (32, 34, 42)
+COLOR_PANEL = (49, 46, 43)
+COLOR_BORDER = (74, 70, 65)
+COLOR_TEXT = (232, 224, 208)
+COLOR_MUTED = (170, 161, 147)
+COLOR_ACCENT = (206, 180, 138)
+COLOR_BUTTON = (59, 57, 55)
+COLOR_BUTTON_ACTIVE = (88, 110, 60)
+COLOR_BUTTON_ACTIVE_TEXT = (245, 240, 228)
+COLOR_BUTTON_DISABLED = (44, 42, 39)
+COLOR_SHADE = (16, 14, 12)
+COLOR_ON_SHADE = (240, 232, 216)
 
 
 def draw_panel(screen, rect: pygame.Rect) -> None:
@@ -59,7 +62,7 @@ class Button:
         fill = COLOR_BUTTON_ACTIVE if active else COLOR_BUTTON if enabled else COLOR_BUTTON_DISABLED
         pygame.draw.rect(screen, fill, self.rect, border_radius=6)
         pygame.draw.rect(screen, COLOR_BORDER, self.rect, width=1, border_radius=6)
-        color = COLOR_TEXT if enabled else COLOR_MUTED
+        color = COLOR_BUTTON_ACTIVE_TEXT if active else COLOR_TEXT if enabled else COLOR_MUTED
         label = font.render(self.label, True, color)
         screen.blit(label, label.get_rect(center=self.rect.center))
 
@@ -181,7 +184,7 @@ HELP_PAGES = [
 def draw_help(screen, title_font, font, page: int = 0) -> None:
     """Layar bantuan di atas seluruh jendela."""
     shade = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
-    shade.fill((0, 0, 0, 190))
+    shade.fill((*COLOR_SHADE, 170))
     screen.blit(shade, (0, 0))
     box = pygame.Rect(0, 0, HELP_BOX_SIZE[0], HELP_BOX_SIZE[1])
     box.center = screen.get_rect().center
