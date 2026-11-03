@@ -81,7 +81,7 @@ def wall_placement_breakdown(
     path_cut_steps = max(0, d_opp_after - d_opp_before)
     self_penalty_steps = max(0, d_ai_after - d_ai_before)
     mobility_reduced = max(0, m_opp_before - m_opp_after)
-    edge = r in (0, 6) or c in (0, 6)
+    edge = r in (0, 7) or c in (0, 7)
 
     score_path_cut = 5.0 if path_cut_steps > 0 else 0.0
     score_self = -4.0 * self_penalty_steps

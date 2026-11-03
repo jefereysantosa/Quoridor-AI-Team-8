@@ -2,7 +2,7 @@
 from src.game.state import State
 from src.game.moves import MoveGenerator
 from src.ai import QuoridorAI, Playstyle
-from src.ai.evaluation import evaluate_state
+from src.ai.evaluation import evaluate_state, wall_placement_breakdown
 
 
 def test_ai_memilih_aksi_legal():
@@ -28,6 +28,16 @@ def test_evaluasi_bersifat_zero_sum():
     v1 = evaluate_state(s, 1)
     assert v0 > 0
     assert abs(v0 + v1) < 1e-9
+
+
+def test_edge_penalty_hanya_untuk_slot_tepi_papan():
+    s = State()
+    for r, c in ((0, 3), (7, 3), (3, 0), (3, 7)):
+        hasil = wall_placement_breakdown(s, r, c, "H", 0)
+        assert hasil["edge"] and hasil["score_edge"] == -0.25
+    for r, c in ((6, 3), (3, 6), (3, 3)):
+        hasil = wall_placement_breakdown(s, r, c, "H", 0)
+        assert not hasil["edge"] and hasil["score_edge"] == 0.0
 
 
 def test_candidate_filtering_mengurangi_kandidat_dinding():
