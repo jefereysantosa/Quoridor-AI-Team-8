@@ -38,18 +38,19 @@ class QuoridorAI:
     - last_search_time_ms: waktu pencarian dalam milidetik.
     """
 
-    def __init__(
-        self,
-        max_depth: int = 3,
-        playstyle: Tuple[float, float, float] = None,
-    ):
+    def __init__(self, max_depth: int = 3, playstyle=None):
         self.max_depth = max_depth
-        self.playstyle = playstyle if playstyle is not None else Playstyle.DEFAULT
-
-        # Statistik untuk GUI (di-reset setiap get_best_move)
+        self.playstyle = playstyle  # boleh str, Playstyle, tuple, atau None
         self.nodes_evaluated: int = 0
         self.nodes_pruned: int = 0
         self.last_search_time_ms: float = 0.0
+
+    def set_playstyle(self, playstyle) -> None:
+        """
+        Dynamic Playstyle (Bab 2.1.1): ganti bobot evaluasi secara runtime
+        tanpa membuat ulang objek AI. Dipanggil oleh tombol GUI.
+        """
+        self.playstyle = playstyle
 
     # ------------------------------------------------------------------
     # Public API
