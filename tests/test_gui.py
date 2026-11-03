@@ -1,12 +1,13 @@
 """Test M2: hit-test papan, alasan penolakan dinding, dan alur GameController."""
 import os
+import threading
 import time
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 from src.gui.board_view import BoardView, CELL_SIZE, ORIGIN
 from src.gui.controller import (
-    AI_IDX, HUMAN_IDX, MODE_HUMAN, GameController, wall_rejection_reason,
+    AI_IDX, HUMAN_IDX, LEVEL_TIME_LIMITS, MODE_HUMAN, GameController, _search, wall_rejection_reason,
 )
 from src.game.state import State
 
@@ -132,6 +133,34 @@ def test_restart_saat_ai_berpikir_mengabaikan_hasil_lama():
     time.sleep(0.2)
     ctrl.update()
     assert ctrl.state.current_player == HUMAN_IDX and not ctrl.history
+
+
+def test_level_tanpa_batas_mencari_di_kedalaman_level():
+    action, stats = _search(State(), 2, "balanced", threading.Event())
+    assert action is not None
+    assert stats["depth"] == 2 and stats["limit"] is None
+
+
+def test_level_berhenti_di_batas_waktu_dan_memakai_hasil_terakhir(monkeypatch):
+    monkeypatch.setitem(LEVEL_TIME_LIMITS, 5, 0.5)
+    action, stats = _search(State(), 5, "balanced", threading.Event())
+    assert action is not None
+    assert 1 <= stats["depth"] < 5
+    assert stats["ms"] < 1500
+
+
+def test_batas_waktu_habis_tetap_punya_langkah(monkeypatch):
+    monkeypatch.setitem(LEVEL_TIME_LIMITS, 5, 0.0)
+    action, stats = _search(State(), 5, "balanced", threading.Event())
+    assert action is not None and stats["depth"] == 1
+
+
+def test_langkah_menang_tidak_menunggu_batas_waktu(monkeypatch):
+    monkeypatch.setitem(LEVEL_TIME_LIMITS, 5, 60.0)
+    s = State()
+    s.pawns[0], s.pawns[1] = (7, 2), (1, 6)
+    action, stats = _search(s, 5, "balanced", threading.Event())
+    assert action == ("move", (8, 2)) and stats["depth"] == 1
 
 
 def test_hint_tersedia_tanpa_mengubah_state():

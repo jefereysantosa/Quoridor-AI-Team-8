@@ -29,6 +29,7 @@ MODE_HUMAN = "human"
 
 DEFAULT_LEVEL = 2
 DEFAULT_PLAYSTYLE = "balanced"
+LEVEL_TIME_LIMITS = {3: 3.0, 4: 5.0, 5: 10.0}  # detik berpikir maksimal per langkah
 HINT_MAX_DEPTH = 2
 ANIMATION_SECONDS = 0.25
 NOTICE_SECONDS = 5.0
@@ -38,16 +39,23 @@ class SearchCancelled(Exception):
     """Pencarian dihentikan karena hasilnya sudah tidak dibutuhkan."""
 
 
-class CancellableAI(QuoridorAI):
-    """QuoridorAI yang bisa dihentikan saat New Game, Restart, atau Undo."""
+class SearchTimedOut(Exception):
+    """Batas waktu level habis sebelum kedalaman ini selesai dicari."""
 
-    def __init__(self, cancel: threading.Event, max_depth: int, playstyle=None):
+
+class CancellableAI(QuoridorAI):
+    """QuoridorAI yang bisa dihentikan saat New Game, Restart, Undo, atau batas waktu habis."""
+
+    def __init__(self, cancel: threading.Event, max_depth: int, playstyle=None, deadline: Optional[float] = None):
         super().__init__(max_depth=max_depth, playstyle=playstyle)
         self.cancel = cancel
+        self.deadline = deadline
 
     def _minimax(self, *args, **kwargs):
         if self.cancel.is_set():
             raise SearchCancelled()
+        if self.deadline is not None and time.perf_counter() > self.deadline:
+            raise SearchTimedOut()
         return super()._minimax(*args, **kwargs)
 
 
@@ -90,17 +98,42 @@ def wall_rejection_reason(state, r: int, c: int, orient: str, player_idx: int) -
     return "Dinding ditolak: bertumpuk atau bersilang dengan dinding lain."
 
 
-def _search(state, depth: int, playstyle, cancel: threading.Event) -> Tuple[Optional[Tuple], Dict]:
-    """Mencari langkah AI lalu merangkum angka untuk panel statistik."""
+def _wins(state, action: Tuple, player_idx: int) -> bool:
+    child = state.clone()
+    child.apply_move(action, player_idx)
+    return child.is_winner(player_idx)
+
+
+def _search(state, level: int, playstyle, cancel: threading.Event) -> Tuple[Optional[Tuple], Dict]:
+    """
+    Mencari langkah AI lalu merangkum angka untuk panel statistik.
+
+    Level dengan batas waktu memakai iterative deepening: kedalaman dinaikkan
+    sampai sama dengan level atau waktu habis, lalu hasil kedalaman terakhir
+    yang selesai dipakai. Level tanpa batas langsung mencari di kedalaman level.
+    """
     player_idx = state.current_player
-    ai = CancellableAI(cancel, max_depth=depth, playstyle=playstyle)
-    action = ai.get_best_move(state, player_idx)
-    stats = {
-        "depth": depth,
-        "nodes": ai.nodes_evaluated,
-        "cutoffs": ai.nodes_pruned,
-        "ms": ai.last_search_time_ms,
-    }
+    limit = LEVEL_TIME_LIMITS.get(level)
+    start = time.perf_counter()
+    action = None
+    stats = {"depth": 0, "nodes": 0, "cutoffs": 0, "limit": limit}
+
+    for depth in ([level] if limit is None else range(1, level + 1)):
+        # Kedalaman 1 selalu diselesaikan agar AI pasti punya langkah
+        deadline = start + limit if limit is not None and depth > 1 else None
+        ai = CancellableAI(cancel, depth, playstyle, deadline)
+        try:
+            action = ai.get_best_move(state, player_idx)
+            stats["depth"] = depth
+        except SearchTimedOut:
+            break
+        finally:
+            stats["nodes"] += ai.nodes_evaluated
+            stats["cutoffs"] += ai.nodes_pruned
+        if action is None or _wins(state, action, player_idx):
+            break  # Langkah menang tidak perlu dicari lebih dalam
+
+    stats["ms"] = (time.perf_counter() - start) * 1000.0
     if action is not None:
         child = state.clone()
         child.apply_move(action, player_idx)
@@ -289,8 +322,9 @@ class GameController:
         self.level = level
         self._cancel_pending()
         self.hint = None
-        if level >= 4:
-            self._notify(f"Level {level} mencari sangat dalam, satu langkah AI bisa sangat lama.")
+        limit = LEVEL_TIME_LIMITS.get(level)
+        if limit is not None:
+            self._notify(f"Level {level}: AI berpikir maksimal {limit:g} detik per langkah.")
 
     def set_playstyle(self, key: str) -> None:
         self.playstyle = key

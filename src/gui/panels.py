@@ -93,6 +93,13 @@ def _format_score(score: Optional[float]) -> str:
     return f"{score:+.2f}"
 
 
+def _format_depth(stats: Dict) -> str:
+    if "depth" not in stats:
+        return "-"
+    limit = stats.get("limit")
+    return f"{stats['depth']} ply" + (f" (batas {limit:g} detik)" if limit else "")
+
+
 class StatsPanel:
     """Panel Statistik AI: angka dari pencarian terakhir."""
 
@@ -110,7 +117,7 @@ class StatsPanel:
 
         rows = [
             ("Algoritma", "Minimax + Alpha-Beta"),
-            ("Kedalaman", f"{stats['depth']} ply" if "depth" in stats else "-"),
+            ("Kedalaman", _format_depth(stats)),
             ("Node eval", f"{stats['nodes']:,}".replace(",", ".") if "nodes" in stats else "-"),
             ("Cutoff prune", f"{stats['cutoffs']:,}".replace(",", ".") if "cutoffs" in stats else "-"),
             ("Waktu", f"{stats['ms']:,.0f} ms".replace(",", ".") if "ms" in stats else "-"),
