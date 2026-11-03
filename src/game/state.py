@@ -26,6 +26,21 @@ class State:
     def get_pawn_pos(self, player_idx: int):
         return self.pawns[player_idx]
 
+    def apply_move(self, action, player_idx: int):
+        """Menerapkan aksi lalu memindahkan giliran ke lawan."""
+        kind, payload = action
+        if kind == 'move':
+            self.pawns[player_idx] = payload
+        else:
+            r, c, orient = payload
+            if orient == 'H':
+                self.h_walls[r][c] = True
+            else:
+                self.v_walls[r][c] = True
+            self.walls_remaining[player_idx] -= 1
+        self.current_player = 1 - player_idx
+        return self
+
     def is_winner(self, player_idx: int):
         """Cek apakah pemain sudah mencapai garis tujuan."""
         r, _ = self.pawns[player_idx]

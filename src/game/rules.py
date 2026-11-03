@@ -24,11 +24,13 @@ class Rules:
             # Dinding H memanjang 2 unit. Cek tetangga kiri dan kanan.
             if c > 0 and state.h_walls[r][c-1]: return False
             if c < 7 and state.h_walls[r][c+1]: return False
+            if state.v_walls[r][c]: return False   # Dinding V melintasi persimpangan sama
         else: # 'V'
             if state.v_walls[r][c]: return False
             # Dinding V memanjang 2 unit. Cek tetangga atas dan bawah.
             if r > 0 and state.v_walls[r-1][c]: return False
             if r < 7 and state.v_walls[r+1][c]: return False
+            if state.h_walls[r][c]: return False   # Dinding H melintasi persimpangan sama
 
         # 4. Simulasi Penempatan & BFS Reachability Test
         # Simulasi pasang dinding
