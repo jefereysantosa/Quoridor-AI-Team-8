@@ -44,3 +44,20 @@ def test_statistik_pencarian_tercatat():
     ai.get_best_move(s, 0)
     assert ai.nodes_evaluated > 0
     assert ai.last_search_time_ms >= 0.0
+
+def test_minimax_murni_memilih_aksi_sama_dengan_alpha_beta():
+    s = State()
+    for depth in (1, 2):
+        ab = QuoridorAI(max_depth=depth)
+        plain = QuoridorAI(max_depth=depth, use_pruning=False)
+        assert ab.get_best_move(s, 0) == plain.get_best_move(s, 0)
+
+
+def test_alpha_beta_tidak_mengevaluasi_lebih_banyak_node_dari_minimax_murni():
+    s = State()
+    ab = QuoridorAI(max_depth=2)
+    plain = QuoridorAI(max_depth=2, use_pruning=False)
+    ab.get_best_move(s, 0)
+    plain.get_best_move(s, 0)
+    assert plain.nodes_pruned == 0
+    assert ab.nodes_evaluated < plain.nodes_evaluated

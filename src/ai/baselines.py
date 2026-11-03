@@ -3,7 +3,7 @@ Modul Baseline Agent untuk evaluasi M5.
 
 Mengimplementasikan:
 - RandomAgent: memilih aksi legal secara acak (lower bound).
-- GreedyAgent: selalu bergerak meminimalkan jalurnya sendiri,
+- GreedyAgent: selalu bergerak meminimalkan jalur terpendeknya sendiri (A*),
                tanpa memasang dinding (Bab 2.2 bagian A.1 proposal).
 
 Baseline ini BUKAN otak AI utama; hanya dipakai untuk turnamen evaluasi
@@ -32,7 +32,7 @@ class RandomAgent:
 class GreedyAgent:
     """
     Baseline naif: selalu mengambil aksi pion yang paling memperpendek
-    jalurnya sendiri ke target row. Tidak pernah memasang dinding.
+    jalur terpendeknya sendiri ke target row. Tidak pernah memasang dinding.
 
     Mudah dieksploitasi oleh QuoridorAI (target win rate >= 70%
     pada Tabel 3 proposal).
@@ -43,11 +43,11 @@ class GreedyAgent:
         if not pawn_moves:
             return None
 
-        target = 8 if player_idx == 0 else 0
+        # Pilih aksi pion yang membuat jalur terpendek (A*) paling singkat,
+        # sehingga agen tetap benar saat dinding lawan memaksa memutar.
+        def remaining_distance(action):
+            child = state.clone()
+            child.apply_move(action, player_idx)
+            return astar_distance(child, player_idx)
 
-        def closeness(action):
-            _, (r, c) = action
-            return abs(r - target)
-
-        # Pilih yang paling dekat target
-        return min(pawn_moves, key=closeness)
+        return min(pawn_moves, key=remaining_distance)

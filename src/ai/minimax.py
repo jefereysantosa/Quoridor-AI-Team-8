@@ -31,6 +31,7 @@ class QuoridorAI:
     Parameter:
     - max_depth: kedalaman pencarian (ply). 3 adalah default rekomendasi.
     - playstyle: vektor bobot evaluasi (AGGRESSIVE / DEFENSIVE / BALANCED).
+    - use_pruning: False untuk Minimax murni (baseline evaluasi).
 
     Atribut publik (untuk panel statistik GUI):
     - nodes_evaluated: jumlah node yang dievaluasi pada panggilan terakhir.
@@ -38,8 +39,11 @@ class QuoridorAI:
     - last_search_time_ms: waktu pencarian dalam milidetik.
     """
 
-    def __init__(self, max_depth: int = 3, playstyle=None):
+    def __init__(self, max_depth: int = 3, playstyle=None, use_pruning: bool = True):
         self.max_depth = max_depth
+        # False = Minimax murni tanpa Alpha-Beta (baseline Tabel 3 dan metrik
+        # Pruning Efficiency, Bab 2.2). Hasil keputusan identik, hanya lebih lambat.
+        self.use_pruning = use_pruning
         self.playstyle = playstyle  # boleh str, Playstyle, tuple, atau None
         self.nodes_evaluated: int = 0
         self.nodes_pruned: int = 0
@@ -139,7 +143,7 @@ class QuoridorAI:
                     self._minimax(child, depth - 1, alpha, beta, False, ai_player_idx),
                 )
                 alpha = max(alpha, value)
-                if alpha >= beta:
+                if self.use_pruning and alpha >= beta:
                     self.nodes_pruned += 1
                     break  # Beta cutoff
             return value
@@ -153,7 +157,7 @@ class QuoridorAI:
                     self._minimax(child, depth - 1, alpha, beta, True, ai_player_idx),
                 )
                 beta = min(beta, value)
-                if beta <= alpha:
+                if self.use_pruning and beta <= alpha:
                     self.nodes_pruned += 1
                     break  # Alpha cutoff
             return value

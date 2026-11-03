@@ -1,0 +1,87 @@
+{
+  "config": {
+    "games": 50,
+    "depth": 2,
+    "opponents": [
+      "random",
+      "greedy",
+      "minimax"
+    ],
+    "opening_plies": 4,
+    "pruning_samples": 20,
+    "pruning_depth": 3,
+    "workers": 0,
+    "seed": 2026,
+    "out": "experiments/results",
+    "quick": false
+  },
+  "win_rate": {
+    "random": {
+      "games": 50,
+      "wins": 50,
+      "losses": 0,
+      "draws": 0,
+      "win_rate_percent": 100.0,
+      "target_range": [
+        90.0,
+        100.0
+      ],
+      "target_met": true,
+      "win_rate_ai_first": 100.0,
+      "win_rate_ai_second": 100.0,
+      "avg_plies": 30.2
+    },
+    "greedy": {
+      "games": 50,
+      "wins": 50,
+      "losses": 0,
+      "draws": 0,
+      "win_rate_percent": 100.0,
+      "target_range": [
+        70.0,
+        100.0
+      ],
+      "target_met": true,
+      "win_rate_ai_first": 100.0,
+      "win_rate_ai_second": 100.0,
+      "avg_plies": 20.7
+    },
+    "minimax": {
+      "games": 50,
+      "wins": 25,
+      "losses": 25,
+      "draws": 0,
+      "win_rate_percent": 50.0,
+      "target_range": [
+        40.0,
+        60.0
+      ],
+      "target_met": true,
+      "win_rate_ai_first": 48.0,
+      "win_rate_ai_second": 52.0,
+      "avg_plies": 67.8
+    }
+  },
+  "wall_effectiveness": {
+    "walls_placed": 783,
+    "mean": 1.966,
+    "positive_share_percent": 94.5,
+    "negative_count": 0
+  },
+  "pruning": {
+    "samples": 20,
+    "depth": 3,
+    "mean_efficiency_percent": 73.34,
+    "same_move_share_percent": 100.0,
+    "mean_nodes_alphabeta": 1305.9,
+    "mean_nodes_minimax": 34136.8
+  },
+  "search_cost": {
+    "mean_nodes_per_ai_move": 223.3,
+    "mean_ms_per_ai_move": 525.7
+  },
+  "correctness": {
+    "illegal_moves_total": 0,
+    "astar_bfs_mismatches": 0
+  }
+}
