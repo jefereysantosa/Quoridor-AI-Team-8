@@ -1,5 +1,3 @@
-import copy
-
 class State:
     def __init__(self):
         
@@ -10,18 +8,25 @@ class State:
         # Sisa dinding: [Player 0, Player 1]. Masing-masing 10 di awal.
         self.walls_remaining = [10, 10]
         
-        # Matriks 8x8 untuk dinding. 
+        # Matriks 9x9 untuk dinding. Slot legal hanya indeks 0-7 (8x8 persimpangan);
+        # baris dan kolom ke-8 selalu False agar pengecekan dari sel tepi papan tidak IndexError.
         # h_walls[r][c] = True berarti ada dinding Horizontal di persimpangan (r,c) yang memanjang ke (r, c+1)
         # v_walls[r][c] = True berarti ada dinding Vertikal di persimpangan (r,c) yang memanjang ke (r+1, c)
-        self.h_walls = [[False for _ in range(8)] for _ in range(8)]
-        self.v_walls = [[False for _ in range(8)] for _ in range(8)]
+        self.h_walls = [[False for _ in range(9)] for _ in range(9)]
+        self.v_walls = [[False for _ in range(9)] for _ in range(9)]
         
         # 0 = Giliran Player 0, 1 = Giliran Player 1
         self.current_player = 0 
 
     def clone(self):
         """Membuat salinan state yang independen untuk simulasi Minimax."""
-        return copy.deepcopy(self)
+        clone = self.__class__.__new__(self.__class__)
+        clone.pawns = list(self.pawns)
+        clone.walls_remaining = list(self.walls_remaining)
+        clone.h_walls = [row[:] for row in self.h_walls]
+        clone.v_walls = [row[:] for row in self.v_walls]
+        clone.current_player = self.current_player
+        return clone
 
     def get_pawn_pos(self, player_idx: int):
         return self.pawns[player_idx]

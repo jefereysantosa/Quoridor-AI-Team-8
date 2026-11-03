@@ -16,7 +16,9 @@ def test_ai_mengambil_kemenangan_satu_langkah():
     s = State()
     s.pawns[0] = (7, 4)
     ai = QuoridorAI(max_depth=2)
-    assert ai.get_best_move(s, 0) == ("move", (8, 4))
+    # (8, 4) ditempati pion lawan, jadi kemenangan lewat lompatan diagonal
+    kind, (r, _c) = ai.get_best_move(s, 0)
+    assert kind == "move" and r == 8
 
 
 def test_evaluasi_bersifat_zero_sum():
